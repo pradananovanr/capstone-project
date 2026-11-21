@@ -574,23 +574,42 @@ function buildCardHTML(tc) {
 
 /**
  * Render all visible test cases into #tc-container.
- * Applies the current active filter.
+ * Applies both the active category filter and the active search query.
  * @param {Object[]} testCases
  * @param {string}   activeFilter  – 'all' | 'Positive' | 'Negative' | 'Edge Case'
+ * @param {string}   [searchQuery] – lowercase keyword; defaults to global activeSearch
  */
-function renderTestCases(testCases, activeFilter) {
+function renderTestCases(testCases, activeFilter, searchQuery) {
   const container   = document.getElementById('tc-container');
   const emptyState  = document.getElementById('empty-state');
   const noResults   = document.getElementById('no-filter-results');
 
-  // Filter
-  const visible = activeFilter === 'all'
+  // Normalize search query
+  const q = (searchQuery !== undefined ? searchQuery : activeSearch).trim().toLowerCase();
+
+  // Apply category filter first
+  let visible = activeFilter === 'all'
     ? testCases
     : testCases.filter((tc) => tc.category === activeFilter);
+
+  // Apply keyword search (matches TC ID, title, or expected result)
+  if (q) {
+    visible = visible.filter((tc) =>
+      tc.id.toLowerCase().includes(q) ||
+      tc.title.toLowerCase().includes(q) ||
+      tc.expected.toLowerCase().includes(q)
+    );
+  }
 
   // Build HTML
   const html = visible.map(buildCardHTML).join('');
   container.innerHTML = html;
+
+  // Update no-results message text to reflect whether a search is active
+  const noResultsEl = document.getElementById('no-filter-results');
+  noResultsEl.textContent = q
+    ? `No test cases match "${q}".`
+    : 'No test cases match the selected filter.';
 
   // Empty state visibility
   const hasAny = testCases.length > 0;
@@ -648,8 +667,12 @@ function animateStatValue(elementId, newValue) {
 /** @type {string} Currently active filter */
 let activeFilter = 'all';
 
+/** @type {string} Current keyword search query (lowercase) */
+let activeSearch = '';
+
 /**
  * Activate a filter button by its data-filter value and re-render.
+ * Preserves the active search query so both constraints apply.
  * @param {string} filter
  * @param {Object[]} testCases
  */
@@ -661,7 +684,7 @@ function setFilter(filter, testCases) {
     btn.classList.toggle('active', btn.dataset.filter === filter);
   });
 
-  renderTestCases(testCases, activeFilter);
+  renderTestCases(testCases, activeFilter, activeSearch);
 }
 
 /* ============================================================
@@ -703,32 +726,41 @@ function toMarkdown(testCases) {
 
 /**
  * Serialize test cases to RFC 4180-compliant CSV.
+ *
+ * Steps are joined with " | " so multi-step strings remain single-line.
+ * Every cell is then unconditionally double-quote-wrapped after escaping
+ * internal double-quotes — this guarantees commas, newlines (\n / \r\n),
+ * and pipe characters embedded in any free-text field (preconditions,
+ * expected result, feature name) never break the column structure.
+ *
  * @param {Object[]} testCases
  * @returns {string}
  */
 function toCSV(testCases) {
-  const headers = ['Test ID', 'Category', 'Title', 'Priority', 'Module', 'Feature', 'Preconditions', 'Steps', 'Expected Result', 'Status'];
+  const headers = ['Test ID', 'Category', 'Title', 'Priority', 'Module',
+                   'Feature', 'Preconditions', 'Steps', 'Expected Result', 'Status'];
 
   /**
-   * Wrap a cell value: escape double-quotes, quote if necessary.
+   * Wrap a cell value with full RFC 4180 quoting:
+   *  1. Coerce to string
+   *  2. Escape any embedded double-quotes by doubling them
+   *  3. Always wrap in double-quotes (simplest safe strategy)
    * @param {string} val
    * @returns {string}
    */
-  const cell = (val) => {
-    const s = String(val).replace(/"/g, '""');
-    return /[,"\n\r]/.test(s) ? `"${s}"` : s;
-  };
+  const cell = (val) => `"${String(val).replace(/"/g, '""')}"`;
 
   const rows = testCases.map((tc) => [
     tc.id,
     tc.category,
     tc.title,
     tc.priority,
-    tc.module,
-    tc.feature,
-    tc.preconditions,
-    tc.steps.join(' | '),
-    tc.expected,
+    tc.module   ?? '',
+    tc.feature  ?? '',
+    tc.preconditions ?? '',
+    // Join steps on a single line; strip embedded newlines from each step
+    tc.steps.map((s) => s.replace(/[\r\n]+/g, ' ')).join(' | '),
+    tc.expected ?? '',
     tc.status,
   ].map(cell).join(','));
 
@@ -984,7 +1016,140 @@ function initEventListeners() {
     const feature  = testCases[0]?.feature ?? 'export';
     const filename = `qa-gen_${feature.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.csv`;
     downloadFile(csv, filename, 'text/csv;charset=utf-8;');
-    showToast('CSV downloaded!');
+    showToast('Exported to CSV!');   // ← updated toast message
+  });
+
+  // ── Search bar ──
+  const searchInput     = document.getElementById('search-input');
+  const btnClearSearch  = document.getElementById('btn-clear-search');
+
+  searchInput.addEventListener('input', () => {
+    activeSearch = searchInput.value.trim().toLowerCase();
+    // Show/hide the ✕ clear button
+    btnClearSearch.classList.toggle('hidden', activeSearch === '');
+    // Re-render with current category filter + new search
+    renderTestCases(testCases, activeFilter, activeSearch);
+  });
+
+  btnClearSearch.addEventListener('click', () => {
+    searchInput.value = '';
+    activeSearch      = '';
+    btnClearSearch.classList.add('hidden');
+    renderTestCases(testCases, activeFilter, activeSearch);
+    searchInput.focus();
+  });
+
+  // ── Add Custom TC: open / close modal ──
+  const modal         = document.getElementById('custom-tc-modal');
+  const modalForm     = document.getElementById('custom-tc-form');
+  const modalBackdrop = document.getElementById('modal-backdrop');
+
+  /** Open the modal and reset the form */
+  function openModal() {
+    modalForm.reset();
+    // Hide all validation errors
+    ['ct-title-error', 'ct-category-error', 'ct-expected-error'].forEach((id) => {
+      document.getElementById(id).classList.add('hidden');
+    });
+    modal.classList.remove('hidden');
+    document.getElementById('ct-title').focus();
+    document.body.style.overflow = 'hidden';  // prevent background scroll
+  }
+
+  /** Close the modal */
+  function closeModal() {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('btn-add-custom').addEventListener('click', openModal);
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal-cancel').addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', closeModal);
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+  });
+
+  // ── Add Custom TC: form submit ──
+  modalForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Validate required fields
+    const title    = document.getElementById('ct-title').value.trim();
+    const category = document.getElementById('ct-category').value;
+    const expected = document.getElementById('ct-expected').value.trim();
+    let valid = true;
+
+    const titleErr = document.getElementById('ct-title-error');
+    if (!title) {
+      titleErr.classList.remove('hidden');
+      document.getElementById('ct-title').focus();
+      valid = false;
+    } else {
+      titleErr.classList.add('hidden');
+    }
+
+    const catErr = document.getElementById('ct-category-error');
+    if (!category) {
+      catErr.classList.remove('hidden');
+      if (valid) document.getElementById('ct-category').focus();
+      valid = false;
+    } else {
+      catErr.classList.add('hidden');
+    }
+
+    const expErr = document.getElementById('ct-expected-error');
+    if (!expected) {
+      expErr.classList.remove('hidden');
+      if (valid) document.getElementById('ct-expected').focus();
+      valid = false;
+    } else {
+      expErr.classList.add('hidden');
+    }
+
+    if (!valid) return;
+
+    // Build the new test-case object, reusing the same shape as generateTestCases()
+    const priority     = document.getElementById('ct-priority').value || 'Medium';
+    const preconditions = document.getElementById('ct-preconditions').value.trim() || 'None.';
+    const stepsRaw     = document.getElementById('ct-steps').value.trim();
+    // Split on newlines; strip empty lines; fall back to a default step
+    const steps = stepsRaw
+      ? stepsRaw.split('\n').map((s) => s.trim()).filter(Boolean)
+      : ['Execute the scenario as described.'];
+
+    // Derive a unique TC ID: "CUSTOM-001", "CUSTOM-002", …
+    const customCount = testCases.filter((t) => t.id.startsWith('CUSTOM-')).length;
+    const newId = `CUSTOM-${String(customCount + 1).padStart(3, '0')}`;
+
+    // Infer module/feature from first existing TC, or use defaults
+    const module  = testCases[0]?.module  ?? 'Custom';
+    const feature = testCases[0]?.feature ?? 'Custom';
+
+    const newTC = {
+      id:            newId,
+      category,
+      title,
+      preconditions,
+      steps,
+      expected,
+      priority,
+      module,
+      feature,
+      status:        'Pending',
+      createdAt:     Date.now(),
+    };
+
+    // Append to in-memory store and persist — reuse existing helpers
+    testCases.push(newTC);
+    saveToStorage(testCases);
+    renderTestCases(testCases, activeFilter, activeSearch);
+    updateStats(testCases);
+
+    closeModal();
+    showToast(`${newId} added to test suite!`);
   });
 
   // ── Clear All ──
@@ -994,7 +1159,12 @@ function initEventListeners() {
     testCases = [];
     saveToStorage(testCases);
     activeFilter = 'all';
-    renderTestCases(testCases, activeFilter);
+    activeSearch  = '';
+    // Also clear the search input visually
+    const si = document.getElementById('search-input');
+    if (si) { si.value = ''; }
+    document.getElementById('btn-clear-search').classList.add('hidden');
+    renderTestCases(testCases, activeFilter, activeSearch);
     updateStats(testCases);
     // Reset filter buttons
     document.querySelectorAll('.filter-btn').forEach((btn) => {
@@ -1033,7 +1203,7 @@ function init() {
   // Restore persisted state
   testCases = loadFromStorage();
   if (testCases.length) {
-    renderTestCases(testCases, activeFilter);
+    renderTestCases(testCases, activeFilter, activeSearch);
     updateStats(testCases);
     showToast(`${testCases.length} test cases restored from last session.`, 'info');
   }

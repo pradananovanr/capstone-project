@@ -176,6 +176,40 @@
         </div>
       </div>
 
+      <!-- Search Bar + Add Custom TC -->
+      <div class="flex gap-3 items-center">
+        <div class="relative flex-1">
+          <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-500" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/>
+            </svg>
+          </span>
+          <input
+            type="search"
+            id="search-input"
+            placeholder="Search by ID, title, or expected result…"
+            class="form-input pl-9 pr-9"
+            autocomplete="off"
+            aria-label="Search test cases" />
+          <button
+            id="btn-clear-search"
+            class="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-300 hidden"
+            aria-label="Clear search" title="Clear search">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <button id="btn-add-custom"
+          class="flex-shrink-0 flex items-center gap-1.5 export-btn !border-indigo-500/40 !text-indigo-400 hover:!bg-indigo-500/10 whitespace-nowrap"
+          aria-label="Add a custom test case">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          Add Custom
+        </button>
+      </div>
+
       <!-- Empty State -->
       <div id="empty-state" class="flex flex-col items-center justify-center py-20 text-center" aria-live="polite">
         <div class="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center mb-5 text-4xl" aria-hidden="true">🧪</div>
@@ -200,6 +234,99 @@
   <footer class="mt-16 border-t border-slate-800 py-6 text-center text-xs text-slate-600">
     QA-Gen · IT Track AI Agent Capstone Project · Built with Semantic HTML5, Tailwind CSS &amp; Vanilla JS
   </footer>
+
+  <!-- ===== ADD CUSTOM TEST CASE MODAL ===== -->
+  <div id="custom-tc-modal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+    role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+    <!-- Backdrop -->
+    <div id="modal-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+    <!-- Panel -->
+    <div class="relative w-full max-w-lg bg-slate-900 border border-slate-700/60 rounded-2xl shadow-2xl overflow-hidden z-10">
+
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-700/60 flex items-center justify-between">
+        <h2 id="modal-title" class="text-sm font-semibold text-slate-200 uppercase tracking-widest">Add Custom Test Case</h2>
+        <button id="modal-close"
+          class="text-slate-500 hover:text-slate-200 transition-colors p-1 rounded-lg hover:bg-slate-800"
+          aria-label="Close modal">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form id="custom-tc-form" class="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto" novalidate>
+
+        <!-- Title -->
+        <div>
+          <label for="ct-title" class="form-label">Test Title <span class="text-red-400">*</span></label>
+          <input type="text" id="ct-title" class="form-input" placeholder="e.g. Rate limit returns 429 after 100 req/min" maxlength="150" autocomplete="off" />
+          <p id="ct-title-error" class="form-error hidden" role="alert">Test title is required.</p>
+        </div>
+
+        <!-- Category + Priority row -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="ct-category" class="form-label">Category <span class="text-red-400">*</span></label>
+            <select id="ct-category" class="form-input">
+              <option value="" disabled selected>— Pick —</option>
+              <option value="Positive">Positive</option>
+              <option value="Negative">Negative</option>
+              <option value="Edge Case">Edge Case</option>
+            </select>
+            <p id="ct-category-error" class="form-error hidden" role="alert">Category is required.</p>
+          </div>
+          <div>
+            <label for="ct-priority" class="form-label">Priority</label>
+            <select id="ct-priority" class="form-input">
+              <option value="High">🔴 High</option>
+              <option value="Medium" selected>🟡 Medium</option>
+              <option value="Low">🟢 Low</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Preconditions -->
+        <div>
+          <label for="ct-preconditions" class="form-label">Preconditions</label>
+          <input type="text" id="ct-preconditions" class="form-input" placeholder="e.g. User is authenticated" maxlength="300" autocomplete="off" />
+        </div>
+
+        <!-- Steps -->
+        <div>
+          <label for="ct-steps" class="form-label">Test Steps <span class="text-xs normal-case text-slate-500 font-normal">(one per line)</span></label>
+          <textarea id="ct-steps" rows="4" class="form-input resize-none"
+            placeholder="1. Send request with valid token&#10;2. Observe rate limit header&#10;3. Exceed threshold and retry"></textarea>
+        </div>
+
+        <!-- Expected Result -->
+        <div>
+          <label for="ct-expected" class="form-label">Expected Result <span class="text-red-400">*</span></label>
+          <textarea id="ct-expected" rows="2" class="form-input resize-none"
+            placeholder="HTTP 429 Too Many Requests with Retry-After header." maxlength="400"></textarea>
+          <p id="ct-expected-error" class="form-error hidden" role="alert">Expected result is required.</p>
+        </div>
+
+        <!-- Submit -->
+        <div class="pt-1 flex gap-3 justify-end">
+          <button type="button" id="modal-cancel"
+            class="export-btn">Cancel</button>
+          <button type="submit" id="btn-add-tc"
+            class="flex items-center gap-2 py-2 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add Test Case
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
