@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QA-Gen: Interactive Test Case Generator</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: { 950: '#0a0f1e' },
+            indigo: { 450: '#6d7fff' }
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dark bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+
+  <!-- ===== HEADER ===== -->
+  <header class="bg-slate-900 border-b border-slate-700/60 sticky top-0 z-30 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <!-- Logo icon -->
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-indigo-600 text-white text-lg font-bold select-none shadow">QA</span>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white leading-none">QA-Gen</h1>
+          <p class="text-xs text-slate-400 leading-none mt-0.5">Interactive Test Case Generator</p>
+        </div>
+      </div>
+      <span class="hidden sm:block text-xs text-slate-500 bg-slate-800 border border-slate-700 px-3 py-1 rounded-full">AI Agent Capstone · IT Track</span>
+    </div>
+  </header>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-8 items-start">
+
+    <!-- ===== INPUT PANEL ===== -->
+    <aside class="xl:sticky xl:top-24" aria-label="Test case input panel">
+      <section class="bg-slate-900 border border-slate-700/60 rounded-2xl shadow-xl overflow-hidden">
+        <!-- Panel header -->
+        <div class="px-6 py-4 border-b border-slate-700/60 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-slate-200 uppercase tracking-widest">Input Panel</h2>
+          <button id="btn-load-sample"
+            class="text-xs font-medium text-indigo-400 hover:text-indigo-300 border border-indigo-500/40 hover:border-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg transition-all duration-150"
+            title="Load sample data for demo" aria-label="Load sample input">
+            ⚡ Load Sample
+          </button>
+        </div>
+
+        <!-- Form -->
+        <form id="generator-form" class="px-6 py-5 space-y-5" novalidate aria-label="Test case generator form">
+
+          <!-- Feature / Endpoint -->
+          <div>
+            <label for="feature-name" class="form-label">Feature Name / API Endpoint <span class="text-red-400">*</span></label>
+            <input type="text" id="feature-name" name="feature-name" autocomplete="off" spellcheck="false"
+              placeholder="e.g. POST /api/v1/login"
+              class="form-input"
+              maxlength="150" required aria-required="true" />
+            <p id="feature-error" class="form-error hidden" role="alert">This field is required.</p>
+          </div>
+
+          <!-- Module Category -->
+          <div>
+            <label for="module-category" class="form-label">Module Category <span class="text-red-400">*</span></label>
+            <select id="module-category" name="module-category" class="form-input" required aria-required="true">
+              <option value="" disabled selected>— Select category —</option>
+              <option value="Authentication">Authentication</option>
+              <option value="Payment">Payment</option>
+              <option value="CRUD Data">CRUD Data</option>
+              <option value="User Profile">User Profile</option>
+            </select>
+            <p id="category-error" class="form-error hidden" role="alert">Please select a module category.</p>
+          </div>
+
+          <!-- Priority -->
+          <div>
+            <label class="form-label">Priority</label>
+            <div class="flex gap-3 mt-1" role="radiogroup" aria-label="Test priority">
+              <label class="priority-pill" data-priority="High">
+                <input type="radio" name="priority" value="High" class="sr-only" />
+                <span>🔴 High</span>
+              </label>
+              <label class="priority-pill" data-priority="Medium">
+                <input type="radio" name="priority" value="Medium" class="sr-only" checked />
+                <span>🟡 Medium</span>
+              </label>
+              <label class="priority-pill" data-priority="Low">
+                <input type="radio" name="priority" value="Low" class="sr-only" />
+                <span>🟢 Low</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Acceptance Criteria -->
+          <div>
+            <label for="acceptance-criteria" class="form-label">Acceptance Criteria / Payload Details</label>
+            <textarea id="acceptance-criteria" name="acceptance-criteria"
+              rows="4" spellcheck="false"
+              placeholder="e.g. Valid credentials return JWT token; invalid credentials return 401..."
+              class="form-input resize-none"
+              maxlength="600" aria-label="Acceptance criteria or payload details"></textarea>
+            <p class="text-xs text-slate-500 mt-1 text-right"><span id="criteria-count">0</span>/600</p>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" id="btn-generate"
+            class="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold text-sm shadow-lg shadow-indigo-900/40 hover:shadow-indigo-800/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900">
+            <svg id="generate-icon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <svg id="generate-spinner" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+            <span id="generate-label">Generate Test Cases</span>
+          </button>
+
+        </form>
+      </section>
+    </aside>
+
+    <!-- ===== DASHBOARD PANEL ===== -->
+    <section aria-label="Test execution dashboard" class="space-y-6 min-w-0">
+
+      <!-- Summary Stats Bar -->
+      <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-4 gap-3" role="status" aria-live="polite" aria-atomic="true">
+        <div class="stat-card border-indigo-500/30" data-stat="total">
+          <span class="stat-label">Total</span>
+          <span id="stat-total" class="stat-value text-indigo-400">0</span>
+        </div>
+        <div class="stat-card border-emerald-500/30" data-stat="passed">
+          <span class="stat-label">Passed</span>
+          <span id="stat-passed" class="stat-value text-emerald-400">0</span>
+        </div>
+        <div class="stat-card border-red-500/30" data-stat="failed">
+          <span class="stat-label">Failed</span>
+          <span id="stat-failed" class="stat-value text-red-400">0</span>
+        </div>
+        <div class="stat-card border-amber-500/30" data-stat="pending">
+          <span class="stat-label">Pending</span>
+          <span id="stat-pending" class="stat-value text-amber-400">0</span>
+        </div>
+      </div>
+
+      <!-- Toolbar: Filters + Export -->
+      <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+        <!-- Filter buttons -->
+        <div id="filter-bar" class="flex flex-wrap gap-2" role="group" aria-label="Filter test cases by type">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="Positive">✅ Positive</button>
+          <button class="filter-btn" data-filter="Negative">❌ Negative</button>
+          <button class="filter-btn" data-filter="Edge Case">⚡ Edge Case</button>
+        </div>
+        <!-- Export buttons -->
+        <div class="flex gap-2 flex-wrap" id="export-bar">
+          <button id="btn-copy-md"
+            class="export-btn" title="Copy all test cases as Markdown" aria-label="Copy as Markdown">
+            📋 Copy Markdown
+          </button>
+          <button id="btn-download-csv"
+            class="export-btn" title="Download test cases as CSV for Jira/TestRail" aria-label="Download CSV">
+            ⬇️ Download CSV
+          </button>
+          <button id="btn-clear"
+            class="export-btn !border-red-500/40 !text-red-400 hover:!bg-red-500/10" title="Clear all test cases" aria-label="Clear all test cases">
+            🗑 Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="flex flex-col items-center justify-center py-20 text-center" aria-live="polite">
+        <div class="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center mb-5 text-4xl" aria-hidden="true">🧪</div>
+        <h3 class="text-slate-300 font-semibold text-lg">No test cases yet</h3>
+        <p class="text-slate-500 text-sm mt-2 max-w-xs">Fill in the form and click <strong class="text-indigo-400">Generate Test Cases</strong> to get started, or use <strong class="text-indigo-400">Load Sample</strong> for a quick demo.</p>
+      </div>
+
+      <!-- Test Cases Container -->
+      <div id="tc-container" class="space-y-4" aria-label="Generated test cases" aria-live="polite" role="list">
+        <!-- Cards injected by script.js -->
+      </div>
+
+      <!-- No filter results -->
+      <div id="no-filter-results" class="hidden text-center py-10 text-slate-500 text-sm" aria-live="polite">
+        No test cases match the selected filter.
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="mt-16 border-t border-slate-800 py-6 text-center text-xs text-slate-600">
+    QA-Gen · IT Track AI Agent Capstone Project · Built with Semantic HTML5, Tailwind CSS &amp; Vanilla JS
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

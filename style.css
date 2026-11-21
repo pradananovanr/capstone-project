@@ -1,0 +1,479 @@
+/* ==========================================================
+   QA-Gen: Interactive Test Case Generator — Custom Styles
+   Companion to Tailwind CSS (CDN). All component classes
+   that would be excessively verbose as inline Tailwind
+   utilities live here for readability and DRY authoring.
+   ========================================================== */
+
+/* ── Global ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ── Form Components ─────────────────────────────────────── */
+
+/* Shared label style */
+.form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8; /* slate-400 */
+  margin-bottom: 0.375rem;
+}
+
+/* Shared input / select / textarea */
+.form-input {
+  display: block;
+  width: 100%;
+  background-color: #0f172a; /* slate-900 */
+  border: 1px solid #334155; /* slate-700 */
+  border-radius: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: #e2e8f0; /* slate-200 */
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  caret-color: #818cf8; /* indigo-400 */
+}
+
+.form-input::placeholder {
+  color: #475569; /* slate-600 */
+}
+
+.form-input:focus {
+  border-color: #6366f1; /* indigo-500 */
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.form-input:invalid:not(:placeholder-shown) {
+  border-color: #ef4444; /* red-500 */
+}
+
+/* Validation error message */
+.form-error {
+  font-size: 0.75rem;
+  color: #f87171; /* red-400 */
+  margin-top: 0.25rem;
+}
+
+/* ── Priority Radio Pills ────────────────────────────────── */
+
+.priority-pill {
+  flex: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.priority-pill > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #334155; /* slate-700 */
+  background-color: #1e293b; /* slate-800 */
+  color: #94a3b8; /* slate-400 */
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.priority-pill > input:checked + span {
+  background-color: #3730a3; /* indigo-800 */
+  border-color: #6366f1; /* indigo-500 */
+  color: #c7d2fe; /* indigo-200 */
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+.priority-pill > span:hover {
+  border-color: #6366f1;
+  color: #c7d2fe;
+}
+
+/* ── Stats Cards ─────────────────────────────────────────── */
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background-color: #0f172a; /* slate-900 */
+  border: 1px solid;
+  border-radius: 1rem;
+  padding: 1rem;
+  text-align: center;
+  transition: transform 0.15s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b; /* slate-500 */
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.2s;
+}
+
+/* Animate value bumps */
+.stat-value.bump {
+  transform: scale(1.25);
+}
+
+/* ── Filter Buttons ──────────────────────────────────────── */
+
+.filter-btn {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.4rem 0.875rem;
+  border-radius: 999px;
+  border: 1px solid #334155; /* slate-700 */
+  background-color: transparent;
+  color: #94a3b8; /* slate-400 */
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  background-color: #1e293b;
+  border-color: #6366f1;
+  color: #c7d2fe;
+}
+
+.filter-btn.active {
+  background-color: #3730a3; /* indigo-800 */
+  border-color: #6366f1;
+  color: #e0e7ff; /* indigo-100 */
+}
+
+/* ── Export Buttons ──────────────────────────────────────── */
+
+.export-btn {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.4rem 0.875rem;
+  border-radius: 0.625rem;
+  border: 1px solid #334155;
+  background-color: #1e293b;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.export-btn:hover {
+  background-color: #293548;
+  border-color: #64748b;
+  color: #cbd5e1;
+}
+
+/* ── Test Case Cards ─────────────────────────────────────── */
+
+.tc-card {
+  background-color: #0f172a; /* slate-900 */
+  border: 1px solid #1e293b; /* slate-800 */
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  animation: card-appear 0.25s ease both;
+}
+
+.tc-card:hover {
+  border-color: #334155; /* slate-700 */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Status-based left border accent */
+.tc-card[data-status="Passed"] {
+  border-left: 3px solid #10b981; /* emerald-500 */
+}
+
+.tc-card[data-status="Failed"] {
+  border-left: 3px solid #ef4444; /* red-500 */
+}
+
+.tc-card[data-status="Pending"] {
+  border-left: 3px solid #f59e0b; /* amber-500 */
+}
+
+/* Card header row */
+.tc-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tc-id {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #64748b; /* slate-500 */
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.tc-title {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #e2e8f0; /* slate-200 */
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* Category badge */
+.badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.2em 0.6em;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.badge-positive {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #34d399; /* emerald-400 */
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-negative {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171; /* red-400 */
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-edge {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fbbf24; /* amber-400 */
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Priority badge */
+.priority-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.15em 0.5em;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.priority-high {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.priority-medium {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.priority-low {
+  background-color: rgba(34, 197, 94, 0.12);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+/* Card body sections */
+.tc-section {
+  margin-top: 0.625rem;
+}
+
+.tc-section-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #475569; /* slate-600 */
+  margin-bottom: 0.25rem;
+}
+
+.tc-section-content {
+  font-size: 0.84rem;
+  color: #94a3b8; /* slate-400 */
+  line-height: 1.6;
+}
+
+/* Steps list */
+.tc-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: step-counter;
+}
+
+.tc-steps li {
+  counter-increment: step-counter;
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.84rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  padding: 0.125rem 0;
+}
+
+.tc-steps li::before {
+  content: counter(step-counter) ".";
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  flex-shrink: 0;
+  min-width: 1.1rem;
+}
+
+/* Expected Result */
+.tc-expected {
+  font-size: 0.84rem;
+  color: #6ee7b7; /* emerald-300 */
+  background-color: rgba(16, 185, 129, 0.07);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  line-height: 1.6;
+}
+
+/* Status dropdown */
+.status-select {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid #334155;
+  background-color: #1e293b;
+  color: #94a3b8;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, color 0.15s;
+  appearance: auto;
+}
+
+.status-select:focus {
+  border-color: #6366f1;
+}
+
+.status-select[data-status="Passed"] {
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.4);
+  background-color: rgba(16, 185, 129, 0.08);
+}
+
+.status-select[data-status="Failed"] {
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+.status-select[data-status="Pending"] {
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.4);
+  background-color: rgba(245, 158, 11, 0.08);
+}
+
+/* ── Card Appear Animation ───────────────────────────────── */
+
+@keyframes card-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger delay helpers for first 8 cards */
+.tc-card:nth-child(1) { animation-delay: 0.04s; }
+.tc-card:nth-child(2) { animation-delay: 0.08s; }
+.tc-card:nth-child(3) { animation-delay: 0.12s; }
+.tc-card:nth-child(4) { animation-delay: 0.16s; }
+.tc-card:nth-child(5) { animation-delay: 0.20s; }
+.tc-card:nth-child(6) { animation-delay: 0.24s; }
+.tc-card:nth-child(7) { animation-delay: 0.28s; }
+.tc-card:nth-child(8) { animation-delay: 0.32s; }
+
+/* ── Toast Notification ──────────────────────────────────── */
+
+#toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: #e2e8f0;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.1rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition: opacity 0.2s, transform 0.2s;
+  max-width: 20rem;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* ── Utility Helpers ─────────────────────────────────────── */
+.hidden { display: none !important; }
+
+/* Visually-hidden for screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0a0f1e; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
